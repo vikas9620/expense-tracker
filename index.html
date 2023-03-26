@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Expense Tracker</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+	<div class="container mt-5">
+		<h1 class="text-center mb-4">Expense Tracker</h1>
+		<form id="expense-form">
+			<div class="form-group">
+				<label for="expense-name">Name</label>
+				<input type="text" class="form-control" id="expense-name">
+			</div>
+			<div class="form-group">
+				<label for="expense-amount">Amount</label>
+				<input type="number" class="form-control" id="expense-amount">
+			</div>
+			<div class="form-group">
+				<label for="expense-category">Category</label>
+				<select class="form-control" id="expense-category">
+					<option value="">--Select a category--</option>
+					<option value="Food">Food</option>
+					<option value="Transportation">Transportation</option>
+					<option value="Shopping">Shopping</option>
+					<option value="Entertainment">Entertainment</option>
+					<option value="Other">Other</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="expense-date">Date</label>
+				<input type="date" class="form-control" id="expense-date">
+			</div>
+			<div class="form-group">
+				<label for="expense-notes">Notes</label>
+				<textarea class="form-control" id="expense-notes"></textarea>
+			</div>
+			<button type="submit" class="btn btn-primary">Add Expense</button>
+		</form>
+		<ul id="expense-list" class="list-group mt-3">
+		</ul>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script>
+		const expenseForm = document.querySelector('#expense-form');
+		const expenseNameInput = document.querySelector('#expense-name');
+		const expenseAmountInput = document.querySelector('#expense-amount');
+		const expenseCategoryInput = document.querySelector('#expense-category');
+		const expenseDateInput = document.querySelector('#expense-date');
+		const expenseNotesInput = document.querySelector('#expense-notes');
+		const expensesList = document.querySelector('#expense-list');
+
+		// Load expenses from local storage and display them on the page
+		function loadExpenses() {
+			let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+			let expensesHtml = '';
+			if (expenses.length > 0) {
+				expenses.forEach((expense, index) => {
+					expensesHtml += `
+						<li class="list-group-item">
+							<div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${expense.name}</strong>
+                                <span class="text-muted">${expense.category}</span>
+                            </div>
+                            <div class="d-flex">
+                                <span class="badge badge-pill badge-secondary mr-2">$${expense.amount}</span>
+                                <button type="button" class="btn btn-warning btn-sm mr-2" onclick="editExpense(${index})">Edit</button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
+                            </div>
+                        </div>
+                    </li>`;
+                });
+            } else {
+                expensesHtml += '<li class="list-group-item">No expenses to show.</li>';
+            }
+            expensesList.innerHTML = expensesHtml;
+
+        }
+                                    // Add new expense to the list and update local storage
+function addExpense(name, amount, category, date, notes) {
+	let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+	let newExpense = {
+		name: name,
+		amount: amount,
+		category: category,
+		date: date,
+		notes: notes
+	};
+	expenses.push(newExpense);
+	localStorage.setItem('expenses', JSON.stringify(expenses));
+	loadExpenses();
+	Swal.fire({
+		icon: 'success',
+		title: 'Expense added successfully!',
+		showConfirmButton: false,
+		timer: 1500
+	});
+	expenseForm.reset();
+}
+
+// Handle form submission
+expenseForm.addEventListener('submit', (e) => {
+	e.preventDefault();
+	if (!expenseNameInput.value || !expenseAmountInput.value || !expenseCategoryInput.value || !expenseDateInput.value ) {
+		Swal.fire({
+			icon: 'error',
+			title: 'Please fill all fields',
+			timer: 1500
+		});
+		return;
+	}
+	addExpense(expenseNameInput.value, expenseAmountInput.value, expenseCategoryInput.value, expenseDateInput.value, expenseNotesInput.value);
+});
+
+// Delete expense from list and update local storage
+function deleteExpense(index) {
+	let expenses = JSON.parse(localStorage.getItem('expenses'));
+	expenses.splice(index, 1);
+	localStorage.setItem('expenses', JSON.stringify(expenses));
+	loadExpenses();
+	Swal.fire({
+		icon: 'success',
+		title: 'Expense deleted successfully!',
+		showConfirmButton: false,
+		timer: 1500
+	});
+}
+
+// Edit expense from list and update local storage
+function editExpense(index) {
+	let expenses = JSON.parse(localStorage.getItem('expenses'));
+	let expense = expenses[index];
+	expenseNameInput.value = expense.name;
+	expenseAmountInput.value = expense.amount;
+	expenseCategoryInput.value = expense.category;
+	expenseDateInput.value = expense.date;
+	expenseNotesInput.value = expense.notes;
+	expenseForm.addEventListener('submit', function(event) {
+	event.preventDefault();
+	if (expenseNameInput.value && expenseAmountInput.value && expenseCategoryInput.value && expenseDateInput.value) {
+		expense.name = expenseNameInput.value;
+		expense.amount = expenseAmountInput.value;
+		expense.category = expenseCategoryInput.value;
+		expense.date = expenseDateInput.value;
+		expense.notes = expenseNotesInput.value;
+
+		localStorage.setItem('expenses', JSON.stringify(expenses));
+
+		Swal.fire({
+			title: 'Success',
+			text: 'Expense updated successfully.',
+			icon: 'success'
+		}).then(() => {
+			expenseNameInput.value = '';
+			expenseAmountInput.value = '';
+			expenseCategoryInput.value = '';
+			expenseDateInput.value = '';
+			expenseNotesInput.value = '';
+			loadExpenses();
+		});
+	} else {
+		Swal.fire({
+			title: 'Error',
+			text: 'Please fill all the fields.',
+			icon: 'error'
+		});
+	}
+});
+}
+
+// Delete expense from list and update local storage
+function deleteExpense(index) {
+let expenses = JSON.parse(localStorage.getItem('expenses'));
+expenses.splice(index, 1);
+localStorage.setItem('expenses', JSON.stringify(expenses));
+loadExpenses();
+Swal.fire({
+title: 'Success',
+text: 'Expense deleted successfully.',
+icon: 'success'
+});
+}
+
+// Load expenses when page is loaded
+loadExpenses();
+
+</script>
+</body>
+</html>
