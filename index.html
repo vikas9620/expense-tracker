@@ -37,6 +37,7 @@
 			</div>
 			<button type="submit" class="btn btn-primary">Add Expense</button>
 		</form>
+		<h1 class="text-center mb-4">Expense List</h1>
 		<ul id="expense-list" class="list-group mt-3">
 		</ul>
 	</div>
@@ -65,10 +66,13 @@
                                 <strong>${expense.name}</strong>
                                 <span class="text-muted">${expense.category}</span>
                             </div>
-                            <div class="d-flex">
-                                <span class="badge badge-pill badge-secondary mr-2">$${expense.amount}</span>
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-pill badge">${expense.date}</span>
+                                <span class="badge badge-pill badge-secondary mr-2">${expense.amount}</span>
+                                <div class="d-flex">
                                 <button type="button" class="btn btn-warning btn-sm mr-2" onclick="editExpense(${index})">Edit</button>
                                 <button type="button" class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
+                                </div>
                             </div>
                         </div>
                     </li>`;
@@ -104,7 +108,7 @@ function addExpense(name, amount, category, date, notes) {
 // Handle form submission
 expenseForm.addEventListener('submit', (e) => {
 	e.preventDefault();
-	if (!expenseNameInput.value || !expenseAmountInput.value || !expenseCategoryInput.value || !expenseDateInput.value ) {
+	if (!expenseNameInput.value || !expenseAmountInput.value || !expenseCategoryInput.value || !expenseDateInput.value || !expenseNotesInput.value) {
 		Swal.fire({
 			icon: 'error',
 			title: 'Please fill all fields',
@@ -115,24 +119,13 @@ expenseForm.addEventListener('submit', (e) => {
 	addExpense(expenseNameInput.value, expenseAmountInput.value, expenseCategoryInput.value, expenseDateInput.value, expenseNotesInput.value);
 });
 
-// Delete expense from list and update local storage
-function deleteExpense(index) {
-	let expenses = JSON.parse(localStorage.getItem('expenses'));
-	expenses.splice(index, 1);
-	localStorage.setItem('expenses', JSON.stringify(expenses));
-	loadExpenses();
-	Swal.fire({
-		icon: 'success',
-		title: 'Expense deleted successfully!',
-		showConfirmButton: false,
-		timer: 1500
-	});
-}
+
 
 // Edit expense from list and update local storage
 function editExpense(index) {
 	let expenses = JSON.parse(localStorage.getItem('expenses'));
 	let expense = expenses[index];
+	
 	expenseNameInput.value = expense.name;
 	expenseAmountInput.value = expense.amount;
 	expenseCategoryInput.value = expense.category;
@@ -140,7 +133,7 @@ function editExpense(index) {
 	expenseNotesInput.value = expense.notes;
 	expenseForm.addEventListener('submit', function(event) {
 	event.preventDefault();
-	if (expenseNameInput.value && expenseAmountInput.value && expenseCategoryInput.value && expenseDateInput.value) {
+	if (expenseNameInput.value && expenseAmountInput.value && expenseCategoryInput.value && expenseDateInput.value && expenseNotesInput.value) {
 		expense.name = expenseNameInput.value;
 		expense.amount = expenseAmountInput.value;
 		expense.category = expenseCategoryInput.value;
@@ -169,6 +162,7 @@ function editExpense(index) {
 		});
 	}
 });
+deleteExpense(index-1)
 }
 
 // Delete expense from list and update local storage
